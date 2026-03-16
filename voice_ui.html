@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PGx-Guardian</title>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f8f7f4;
+            --white: #ffffff;
+            --ink: #1c1c1e;
+            --ink-soft: #48484a;
+            --ink-muted: #98989d;
+            --teal: #0a6e72;
+            --teal-light: #e6f4f5;
+            --teal-mid: #b2dfe1;
+            --critical: #c0392b;
+            --critical-bg: #fdf2f1;
+            --high: #b7670a;
+            --high-bg: #fdf6ed;
+            --safe: #1a7a4a;
+            --border: #e5e2db;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+            min-height: 100vh;
+            font-size: 15px;
+        }
+        /* ── Header ── */
+        header {
+            padding: 18px 40px;
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            background: var(--white);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .wordmark {
+            font-family: 'Instrument Serif', serif;
+            font-size: 19px; color: var(--ink);
+        }
+        .wordmark em { color: var(--teal); font-style: normal; }
+        .conn-pill {
+            display: flex; align-items: center; gap: 7px;
+            font-size: 12px; font-weight: 500; color: var(--ink-muted);
+        }
+        .conn-pill.live { color: var(--teal); }
+        .conn-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #ccc; transition: background 0.3s;
+        }
+        .conn-pill.live .conn-dot { background: var(--teal); animation: livepulse 2s infinite; }
+        .conn-pill.reconnecting .conn-dot { background: #e6a817; }
+        @keyframes livepulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+        /* ── Page ── */
+        .page {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 0 24px 80px;
+        }
+        /* ══════════════════════════════════════
+           LAUNCH STATE — centered mic hero
+        ══════════════════════════════════════ */
+        .launch-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 100px;
+            transition: all 0.5s;
+        }
+        /* ── Mic device ── */
+        .mic-device {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+        .mic-orbit {
+            position: relative;
+            width: 130px; height: 130px;
+        }
+        .mic-ring {
+            position: absolute; inset: -12px;
+            border-radius: 50%;
+            border: 2px solid var(--teal-mid);
+            opacity: 0;
+            animation: idle-breathe 2.8s ease-in-out infinite;
+        }
+        .mic-ring:nth-child(2) { animation-delay: 1.4s; }
+        @keyframes idle-breathe {
+            0%   { transform: scale(0.85); opacity: 0; }
+            40%  { opacity: 0.6; }
+            100% { transform: scale(1.15); opacity: 0; }
+        }
+        .mic-btn {
+            position: relative; z-index: 2;
+            width: 130px; height: 130px;
+            border-radius: 50%;
+            border: none;
+            background: var(--teal);
+            color: white;
+            cursor: pointer;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: 7px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 10px; font-weight: 600;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            box-shadow: 0 6px 28px rgba(10,110,114,0.28);
+            transition: transform 0.2s, box-shadow 0.2s, background 0.3s;
+        }
+        .mic-btn:hover { transform: scale(1.04); box-shadow: 0 8px 36px rgba(10,110,114,0.38); }
+        .mic-btn .icon { font-size: 36px; line-height: 1; }
+        .mic-btn.listening { background: var(--critical); box-shadow: 0 6px 28px rgba(192,57,43,0.3); }
+        .mic-btn.listening ~ .mic-ring,
+        .listening-rings .mic-ring {
+            border-color: rgba(192,57,43,0.4);
+            animation: listen-ripple 1s ease-out infinite;
+        }
+        .mic-btn.listening ~ .mic-ring:nth-child(2) { animation-delay: 0.5s; }
+        @keyframes listen-ripple {
+            0%   { transform: scale(0.9); opacity: 0.8; }
+            100% { transform: scale(1.3); opacity: 0; }
+        }
+        .mic-caption { text-align: center; }
+        .mic-caption .primary { font-size: 14px; color: var(--ink); font-weight: 500; }
+        .mic-caption .secondary { font-size: 13px; color: var(--ink-muted); margin-top: 3px; }
+        /* ── Disclosure ── */
+        .disclosure-btn {
+            background: none; border: none; cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px; color: var(--ink-muted);
+            display: flex; align-items: center; gap: 6px;
+            padding: 8px 12px; border-radius: 8px;
+            transition: color 0.2s, background 0.2s;
+        }
+        .disclosure-btn:hover { color: var(--teal); background: var(--teal-light); }
+        .d-arrow { transition: transform 0.25s; display: inline-block; }
+        .disclosure-btn.open .d-arrow { transform: rotate(90deg); }
+        /* ── Patient panel ── */
+        .patient-panel {
+            width: 100%;
+            max-height: 0; overflow: hidden;
+            opacity: 0;
+            transition: max-height 0.45s cubic-bezier(0.4,0,0.2,1), opacity 0.3s;
+        }
+        .patient-panel.open { max-height: 700px; opacity: 1; }
+        .patient-inner {
+            margin-top: 16px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        }
+        .patient-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .fgroup { display: flex; flex-direction: column; gap: 6px; }
+        .fgroup label {
+            font-size: 10px; font-weight: 600;
+            color: var(--ink-muted); letter-spacing: 1.2px; text-transform: uppercase;
+        }
+        .fgroup textarea {
+            border: 1.5px solid var(--border); border-radius: 9px;
+            padding: 11px 13px;
+            font-family: 'DM Mono', monospace; font-size: 12px;
+            color: var(--ink); background: var(--bg);
+            resize: none; outline: none; line-height: 1.75;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .fgroup textarea:focus { border-color: var(--teal); background: var(--white); }
+        .fgroup textarea::placeholder { color: #ccc; }
+        .fmt-hint {
+            font-size: 11px; color: var(--ink-muted);
+            font-family: 'DM Mono', monospace; line-height: 1.6;
+        }
+        .fmt-hint b { font-family: 'DM Sans', sans-serif; color: var(--teal); font-weight: 500; }
+        .upload-zone {
+            margin-top: 6px;
+            border: 1.5px dashed var(--border); border-radius: 9px;
+            padding: 12px; text-align: center; cursor: pointer;
+            font-size: 12px; color: var(--ink-muted);
+            transition: all 0.2s; background: var(--bg);
+        }
+        .upload-zone:hover { border-color: var(--teal); color: var(--teal); background: var(--teal-light); }
+        #fileInput { display: none; }
+        .panel-actions {
+            display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; align-items: center;
+        }
+        .btn {
+            padding: 9px 18px; border-radius: 8px;
+            border: 1.5px solid var(--border);
+            background: var(--white); color: var(--ink-soft);
+            font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+            cursor: pointer; transition: all 0.18s;
+        }
+        .btn:hover { border-color: var(--teal); color: var(--teal); }
+        .btn.primary { background: var(--teal); border-color: var(--teal); color: white; }
+        .btn.primary:hover { background: #0c8589; }
+        .btn.ghost { color: var(--ink-muted); }
+        .btn.dark { background: var(--ink); border-color: var(--ink); color: white; margin-left: auto; }
+        .btn.dark:hover { background: var(--ink-soft); }
+        /* ══════════════════════════════════════
+           CONVERSATION STATE
+        ══════════════════════════════════════ */
+        .conv-state {
+            display: none;
+            flex-direction: column;
+            gap: 0;
+            padding-top: 48px;
+        }
+        .conv-state.visible { display: flex; }
+        .conv-layout {
+            display: grid;
+            grid-template-columns: 1fr 220px;
+            gap: 20px;
+            align-items: start;
+        }
+        /* Transcript */
+        .transcript-wrap { display: flex; flex-direction: column; gap: 16px; }
+        .sec-label {
+            font-size: 10px; font-weight: 600;
+            color: var(--ink-muted); letter-spacing: 1.5px; text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        .transcript-box {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px 24px;
+            min-height: 140px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 14px; line-height: 1.8;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        }
+        .transcript-box.active { border-color: var(--teal-mid); }
+        /* ── Transcript message styles ── */
+        .t-you {
+            color: var(--ink-muted);
+            font-size: 13px;
+            margin: 6px 0;
+            padding: 6px 10px;
+            border-radius: 8px;
+            background: #f4f2ef;
+        }
+        .t-you::before {
+            content: "You";
+            display: block;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--ink-muted);
+            margin-bottom: 2px;
+        }
+        .t-agent {
+            color: var(--ink);
+            margin: 6px 0;
+            padding: 6px 10px;
+            border-radius: 8px;
+            background: var(--teal-light);
+            border-left: 3px solid var(--teal);
+        }
+        .t-agent::before {
+            content: "Agent";
+            display: block;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--teal);
+            margin-bottom: 2px;
+        }
+        .t-critical { color: var(--critical); font-weight: 600; }
+        .t-you.transcribing {
+            color: transparent;
+            background: #f9f8f6;
+            border: 1px dashed #e5e2db;
+            min-height: 20px;
+        }
+        .t-you.transcribing::before {
+            content: "Transcribing…";
+            color: var(--ink-muted);
+            font-style: italic;
+        }
+        .t-divider { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
+        .listening-dots {
+            display: none; align-items: center; gap: 8px;
+            color: var(--teal); font-size: 13px; padding: 4px 0;
+        }
+        .listening-dots.show { display: flex; }
+        .listening-dots span {
+            display: inline-block; width: 5px; height: 5px;
+            border-radius: 50%; background: var(--teal);
+            animation: dot-bounce 1.2s infinite;
+        }
+        .listening-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .listening-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes dot-bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-5px)} }
+        /* Inline mic in conversation mode */
+        .conv-mic-row {
+            display: flex; align-items: center; gap: 14px;
+            padding: 14px 0;
+        }
+        .conv-mic-btn {
+            width: 50px; height: 50px; border-radius: 50%;
+            border: none; background: var(--teal); color: white;
+            font-size: 20px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 3px 14px rgba(10,110,114,0.25);
+            transition: transform 0.2s, background 0.2s;
+            flex-shrink: 0;
+        }
+        .conv-mic-btn:hover { transform: scale(1.08); }
+        .conv-mic-btn.listening { background: var(--critical); animation: mic-glow-sm 1.4s infinite; }
+        @keyframes mic-glow-sm {
+            0%,100%{box-shadow:0 3px 14px rgba(192,57,43,0.25)}
+            50%{box-shadow:0 3px 22px rgba(192,57,43,0.55)}
+        }
+        .conv-mic-label { font-size: 13px; color: var(--ink-muted); }
+        .conv-mic-label b { color: var(--ink); font-weight: 500; }
+        /* Patient context sidebar */
+        .context-panel {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 18px;
+            font-size: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+            position: sticky; top: 80px;
+        }
+        .context-title {
+            font-size: 10px; font-weight: 600;
+            color: var(--ink-muted); letter-spacing: 1.2px; text-transform: uppercase;
+            margin-bottom: 14px; padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        .ctx-section { margin-bottom: 14px; }
+        .ctx-section-label {
+            font-size: 10px; color: var(--teal); font-weight: 600;
+            letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 6px;
+        }
+        .ctx-item {
+            font-family: 'DM Mono', monospace; font-size: 11px;
+            color: var(--ink-soft); padding: 3px 0;
+            border-bottom: 1px solid #f0ede8;
+        }
+        .ctx-item:last-child { border: none; }
+        .ctx-empty { color: var(--ink-muted); font-style: italic; font-size: 11px; }
+        /* Safety report */
+        .report-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 22px 24px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        }
+        .report-head {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 16px; padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .report-title {
+            font-family: 'Instrument Serif', serif;
+            font-size: 16px; color: var(--ink);
+        }
+        .report-time { font-size: 11px; color: var(--ink-muted); font-family: 'DM Mono', monospace; }
+        .rline { padding: 6px 0; border-bottom: 1px solid #f0ede8; font-size: 13.5px; color: var(--ink-soft); }
+        .rline:last-child { border-bottom: none; }
+        .r-critical {
+            background: var(--critical-bg); border: 1px solid #f5c2be;
+            border-radius: 8px; padding: 10px 14px; margin: 8px 0;
+            color: var(--critical); font-weight: 600; font-size: 13.5px;
+        }
+        .r-high {
+            background: var(--high-bg); border: 1px solid #f0d4b0;
+            border-radius: 8px; padding: 10px 14px; margin: 8px 0;
+            color: var(--high); font-weight: 500; font-size: 13.5px;
+        }
+        .r-dosing {
+            border-left: 3px solid var(--teal); padding: 7px 12px; margin: 6px 0;
+            color: var(--teal); font-size: 13px;
+            background: var(--teal-light); border-radius: 0 6px 6px 0;
+        }
+        .r-safe { color: var(--safe); font-weight: 500; }
+    </style>
+</head>
+<body>
+<header>
+    <div class="wordmark">PGx<em>·</em>Guardian</div>
+    <div class="conn-pill" id="connPill">
+        <div class="conn-dot"></div>
+        <span id="connText">Connecting</span>
+    </div>
+</header>
+<div class="page">
+    <!-- ══ LAUNCH STATE ══ -->
+    <div class="launch-state" id="launchState">
+        <div class="mic-device">
+            <div class="mic-orbit" id="micOrbit">
+                <div class="mic-ring"></div>
+                <div class="mic-ring"></div>
+                <button class="mic-btn" id="micBtn" onclick="toggleVoice()">
+                    <span class="icon" id="micIcon">🎙</span>
+                    <span id="micLabel">ANALYZE</span>
+                </button>
+            </div>
+            <div class="mic-caption">
+                <div class="primary" id="micPrimary">Press to speak</div>
+                <div class="secondary">Speak a patient's medications and genetics</div>
+            </div>
+        </div>
+        <!-- Disclosure -->
+        <button class="disclosure-btn" id="discBtn" onclick="togglePanel()">
+            <span class="d-arrow">▸</span>
+            Add patient data manually
+        </button>
+        <!-- Patient panel -->
+        <div class="patient-panel" id="patientPanel">
+            <div class="patient-inner">
+                <div class="patient-grid">
+                    <div class="fgroup">
+                        <label>Genetic Variants</label>
+                        <textarea id="mutBox" rows="6"
+                            placeholder="CYP2D6: *4/*4&#10;CYP2C19: *1/*2&#10;TPMT: *3A/*3A&#10;HLA-B: *57:01/*57:01"></textarea>
+                        <div class="fmt-hint"><b>Format:</b> GENE: *allele1/*allele2 · one per line · 19 genes</div>
+                        <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+                            📄 Upload .txt / .csv / .vcf
+                            <input type="file" id="fileInput" accept=".txt,.csv,.vcf" onchange="handleFile(event)">
+                        </div>
+                    </div>
+                    <div class="fgroup">
+                        <label>Current Medications</label>
+                        <textarea id="medBox" rows="6"
+                            placeholder="clopidogrel&#10;omeprazole&#10;codeine&#10;fluoxetine"></textarea>
+                        <div class="fmt-hint">One per line or comma-separated · Brand names accepted</div>
+                    </div>
+                </div>
+                <div class="panel-actions">
+                    <button class="btn primary" onclick="analyzeForm()">⚡ Analyze</button>
+                    <button class="btn" onclick="loadDemo()">🧪 Demo</button>
+                    <button class="btn ghost" onclick="clearAll()">Clear</button>
+                    <button class="btn dark" onclick="downloadReport()">⬇ Report</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ══ CONVERSATION STATE ══ -->
+    <div class="conv-state" id="convState">
+        <div class="conv-layout">
+            <!-- Left: transcript + mic -->
+            <div class="transcript-wrap">
+                <div class="sec-label">Conversation</div>
+                <div class="transcript-box" id="transcript">
+                    <div class="listening-dots" id="listenDots">
+                        <span></span><span></span><span></span>
+                        &nbsp;Listening…
+                    </div>
+                </div>
+                <!-- Inline mic row -->
+                <div class="conv-mic-row">
+                    <button class="conv-mic-btn" id="convMicBtn" onclick="toggleVoice()">🎙</button>
+                    <div class="conv-mic-label" id="convMicLabel"><b>Continue speaking</b> — or type below</div>
+                </div>
+                <!-- Patient panel in conv mode too -->
+                <button class="disclosure-btn" id="discBtn2" onclick="togglePanel()">
+                    <span class="d-arrow" id="discArrow2">▸</span>
+                    Add / edit patient data
+                </button>
+                <div class="patient-panel" id="patientPanel2" style="width:100%">
+                </div>
+                <!-- Safety report -->
+                <div id="reportCard" style="display:none">
+                    <div class="sec-label" style="margin-top:20px">Safety Report</div>
+                    <div class="report-card">
+                        <div class="report-head">
+                            <div class="report-title">PGx Safety Report</div>
+                            <div style="display:flex;gap:10px;align-items:center">
+                                <span class="report-time" id="reportTime"></span>
+                                <button class="btn dark" style="padding:6px 12px;font-size:12px" onclick="downloadReport()">⬇</button>
+                            </div>
+                        </div>
+                        <div id="reportBody"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- Right: Patient context sidebar -->
+            <div class="context-panel">
+                <div class="context-title">Patient Context</div>
+                <div class="ctx-section">
+                    <div class="ctx-section-label">Medications</div>
+                    <div id="ctxMeds"><div class="ctx-empty">None captured yet</div></div>
+                </div>
+                <div class="ctx-section">
+                    <div class="ctx-section-label">Genetics</div>
+                    <div id="ctxGenes"><div class="ctx-empty">None captured yet</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    const USER_ID = "clinician_1";
+    const SESSION_ID = "session_" + Date.now();
+    const WS_URL = `wss://pgx-guardian-bkn3cbfcxq-ew.a.run.app/ws/${USER_ID}/${SESSION_ID}`;
+    let ws, pcmProcessor, isListening = false;
+    let audioCtx = null, nextPlayTime = 0;
+    const SAMPLE_RATE = 24000;
+    let inConvMode = false;
+    let panelOpen = false;
+    // ── Transcript state ─────────────────────────────────────────────────────
+    let partialAgentText = "";
+    let partialUserText = "";
+    let agentBubble = null;
+    let userBubble = null;
+    let currentTurnId = -1;
+    let lastContextUpdateTurn = -1;
+    // ── Echo prevention ──────────────────────────────────────────────────────
+    let agentSpeaking = false;
+    let micGainNode = null;
+    // ── Audio ────────────────────────────────────────────────────────────────
+    function getAudioCtx() {
+        if (!audioCtx) { audioCtx = new AudioContext({ sampleRate: SAMPLE_RATE }); nextPlayTime = audioCtx.currentTime; }
+        return audioCtx;
+    }
+    function clearAudioQueue() {
+        // Reset playback schedule so queued audio is abandoned
+        if (audioCtx) nextPlayTime = audioCtx.currentTime;
+    }
+    function playPCM(b64) {
+        try {
+            const ctx = getAudioCtx();
+            const fixed = b64.replace(/-/g,"+").replace(/_/g,"/");
+            const bin = atob(fixed);
+            const bytes = new Uint8Array(bin.length);
+            for (let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+            const i16 = new Int16Array(bytes.buffer);
+            const f32 = new Float32Array(i16.length);
+            for (let i=0;i<i16.length;i++) f32[i]=i16[i]/32768.0;
+            const buf = ctx.createBuffer(1,f32.length,SAMPLE_RATE);
+            buf.getChannelData(0).set(f32);
+            const src = ctx.createBufferSource();
+            src.buffer=buf; src.connect(ctx.destination);
+            const t=Math.max(ctx.currentTime,nextPlayTime);
+            src.start(t); nextPlayTime=t+buf.duration;
+            if (!agentSpeaking) {
+                agentSpeaking = true;
+                if (micGainNode) micGainNode.gain.value = 0;
+            }
+            src.onended = () => {
+                if (ctx.currentTime >= nextPlayTime - 0.05) {
+                    agentSpeaking = false;
+                    if (micGainNode) micGainNode.gain.value = 1;
+                }
+            };
+        } catch(e){}
+    }
+    // ── Markdown stripping ────────────────────────────────────────────────────
+    function stripMarkdown(text) {
+        return text
+            .replace(/#{1,3}\s*/g, "")
+            .replace(/\*\*(.*?)\*\*/g, "$1")
+            .replace(/\*(.*?)\*/g, "$1")
+            .replace(/`([^`]+)`/g, "$1")
+            .replace(/^\s*[\*\-]\s+/gm, "")
+            .replace(/\n{2,}/g, " ")
+            .trim();
+    }
+    // ── WebSocket ─────────────────────────────────────────────────────────────
+    let reconnectAttempts = 0;
+    const MAX_RECONNECT = 5;
+    function connect() {
+        ws = new WebSocket(WS_URL);
+        ws.onopen  = () => {
+            setConn("live");
+            reconnectAttempts = 0;
+            hideConnectionAlert();
+        };
+        ws.onclose = (e) => {
+            setConn("off");
+            if (e.code !== 1000) {
+                showConnectionAlert("Connection lost. Attempting to reconnect…");
+                attemptReconnect();
+            }
+        };
+        ws.onerror = () => {
+            setConn("reconnecting");
+            showConnectionAlert("Connection error. Check if the server is running.");
+        };
+        ws.onmessage = (event) => {
+            try {
+                const msg = JSON.parse(event.data);
+                if (msg._turn_id !== undefined) currentTurnId = msg._turn_id;
+                if (msg.type === "connection_recovering") {
+                    showConnectionAlert(msg.message || "Reconnecting…");
+                    return;
+                }
+                if (msg.type === "connection_recovered") {
+                    hideConnectionAlert();
+                    addMsg("Session reconnected. You can continue speaking.", false);
+                    return;
+                }
+                if (msg.type === "connection_lost") {
+                    showConnectionAlert(msg.message || "Connection lost. Please refresh.");
+                    return;
+                }
+                // ── Dedicated report event
+                if (msg.type === "report") {
+                    showReport(msg.text);
+                    return;
+                }
+                // ── Context update from tool call (source of truth)
+                if (msg.type === "context_update") {
+                    if (msg.medications && msg.medications.length) {
+                        document.getElementById("ctxMeds").innerHTML =
+                            msg.medications.map(d => `<div class="ctx-item">${d.toLowerCase()}</div>`).join("");
+                    }
+                    if (msg.genes && msg.genes.length) {
+                        const updateTurn = msg.turn_id !== undefined ? msg.turn_id : currentTurnId;
+                        if (updateTurn !== lastContextUpdateTurn) {
+                            lastContextUpdateTurn = updateTurn;
+                            document.getElementById("ctxGenes").innerHTML =
+                                [...new Set(msg.genes.map(g => g.toUpperCase()))].map(g =>
+                                    `<div class="ctx-item">${g}</div>`).join("");
+                        } else {
+                            const el = document.getElementById("ctxGenes");
+                            const existing = new Set(
+                                Array.from(el.querySelectorAll(".ctx-item")).map(e => e.textContent.toUpperCase())
+                            );
+                            for (const g of msg.genes) existing.add(g.toUpperCase());
+                            el.innerHTML = [...existing].map(g => `<div class="ctx-item">${g}</div>`).join("");
+                        }
+                    }
+                    return;
+                }
+                // ── Dedicated transcript event (agent text from server)
+                if (msg.type === "transcript") {
+                    let txt = stripMarkdown((msg.text || "").replace(/<ctrl\d+>/gi, "").trim());
+                    if (txt) addMsg(txt, false);
+                    return;
+                }
+                // ── Server LLM-corrected transcript
+                if (msg.type === "corrected_transcript") {
+                    const corrected = msg.text;
+                    const turnId = msg.turn_id;
+                    if (corrected && corrected.trim()) {
+                        const t = document.getElementById("transcript");
+                        const target = t.querySelector(`.t-you[data-turn="${turnId}"]`);
+                        if (corrected === "NOISE" || corrected === "NONE" || corrected === "[No speech detected]") {
+                            if (target) target.remove();
+                            return;
+                        }
+                        if (target) {
+                            target.textContent = corrected;
+                            target.classList.remove("transcribing");
+                        }
+                    }
+                    return;
+                }
+                // ── Audio chunks
+                const parts = msg?.content?.parts || [];
+                for (const p of parts) {
+                    if (p.inline_data?.data) playPCM(p.inline_data.data);
+                }
+                // ── Interrupted — barge-in: clear queued audio immediately
+                if (msg?.server_content?.interrupted || msg?.interrupted) {
+                    clearAudioQueue();
+                    agentSpeaking = false;
+                    if (micGainNode) micGainNode.gain.value = 1;
+                }
+                // ── Input transcription (YOU)
+                const inTx = msg?.input_transcription || msg?.server_content?.input_transcription;
+                if (inTx?.text && inTx.text.trim()) {
+                    const newText = inTx.text.trim();
+                    if (newText.length > partialUserText.length &&
+                        (partialUserText === "" || newText.includes(partialUserText.substring(0, 10)))) {
+                        partialUserText = newText;
+                    } else if (!partialUserText.includes(newText)) {
+                        partialUserText += " " + newText;
+                    }
+                    if (!userBubble) {
+                        userBubble = createLiveBubble(true);
+                        userBubble.setAttribute("data-turn", currentTurnId);
+                    }
+                    userBubble.classList.remove("transcribing");
+                    userBubble.textContent = partialUserText.trim();
+                    scrollTranscript();
+                }
+                // ── Output transcription (AGENT)
+                const outTx = msg?.output_transcription || msg?.server_content?.output_transcription;
+                if (outTx?.text && outTx.text.trim()) {
+                    let newText = stripMarkdown(outTx.text.replace(/<ctrl\d+>/gi, "").trim());
+                    if (!newText) return;
+                    if (newText.length > partialAgentText.length) {
+                        partialAgentText = newText;
+                    } else if (!partialAgentText.includes(newText)) {
+                        partialAgentText += " " + newText;
+                    }
+                    if (!agentBubble) agentBubble = createLiveBubble(false);
+                    agentBubble.textContent = partialAgentText.trim();
+                    scrollTranscript();
+                }
+                // ── Turn complete
+                if (msg?.turn_complete) {
+                    agentBubble = null; userBubble = null;
+                    partialAgentText = ""; partialUserText = "";
+                    document.getElementById("transcript").innerHTML += '<hr class="t-divider">';
+                    agentSpeaking = false;
+                    if (micGainNode) micGainNode.gain.value = 1;
+                    setTimeout(() => {
+                        document.querySelectorAll(".t-you.transcribing").forEach(el => el.remove());
+                    }, 8000);
+                }
+            } catch(e){ console.error("WS parse error:", e); }
+        };
+    }
+    function setConn(state) {
+        const pill = document.getElementById("connPill");
+        const text = document.getElementById("connText");
+        pill.className = "conn-pill " + state;
+        text.textContent = state === "live" ? "Live" : state === "reconnecting" ? "Reconnecting…" : "Offline";
+    }
+    function showConnectionAlert(message) {
+        let alert = document.getElementById("connAlert");
+        if (!alert) {
+            alert = document.createElement("div");
+            alert.id = "connAlert";
+            alert.style.cssText = "position:fixed;top:60px;left:50%;transform:translateX(-50%);" +
+                "background:#fdf2f1;border:1px solid #f5c2be;color:#c0392b;padding:12px 24px;" +
+                "border-radius:10px;font-size:13px;font-weight:500;z-index:200;" +
+                "box-shadow:0 4px 16px rgba(0,0,0,0.1);display:flex;align-items:center;gap:10px;";
+            document.body.appendChild(alert);
+        }
+        alert.innerHTML = `⚠️ ${message} <button onclick="location.reload()" style="margin-left:12px;padding:4px 12px;border-radius:6px;border:1px solid #c0392b;background:white;color:#c0392b;cursor:pointer;font-size:12px;">Refresh</button>`;
+        alert.style.display = "flex";
+    }
+    function hideConnectionAlert() {
+        const alert = document.getElementById("connAlert");
+        if (alert) alert.style.display = "none";
+    }
+    function attemptReconnect() {
+        if (reconnectAttempts >= MAX_RECONNECT) {
+            showConnectionAlert("Unable to reconnect. Please refresh the page.");
+            return;
+        }
+        reconnectAttempts++;
+        const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 10000);
+        setTimeout(() => {
+            if (!ws || ws.readyState !== WebSocket.OPEN) connect();
+        }, delay);
+    }
+    // ── Voice toggle ─────────────────────────────────────────────────────────
+    async function toggleVoice() {
+        if (!isListening) await startVoice();
+        else               stopVoice();
+    }
+    async function startVoice() {
+        if (!ws || ws.readyState !== WebSocket.OPEN) connect();
+        await new Promise(r => setTimeout(r, 500));
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: { sampleRate: 16000, channelCount: 1 } });
+            const actx = new AudioContext({ sampleRate: 16000 });
+            const source = actx.createMediaStreamSource(stream);
+            micGainNode = actx.createGain();
+            micGainNode.gain.value = 1;
+            source.connect(micGainNode);
+            const proc = actx.createScriptProcessor(4096, 1, 1);
+            micGainNode.connect(proc); proc.connect(actx.destination);
+            proc.onaudioprocess = (e) => {
+                if (ws && ws.readyState === WebSocket.OPEN)
+                    ws.send(float32ToInt16(e.inputBuffer.getChannelData(0)).buffer);
+            };
+            pcmProcessor = { stream, proc, source, gainNode: micGainNode };
+            isListening = true;
+            audioCtx = null; nextPlayTime = 0;
+            enterConvMode();
+            setListening(true);
+        } catch(e) { alert("Microphone access required."); }
+    }
+    function stopVoice() {
+        if (pcmProcessor) {
+            pcmProcessor.proc.disconnect();
+            pcmProcessor.source.disconnect();
+            if (pcmProcessor.gainNode) pcmProcessor.gainNode.disconnect();
+            pcmProcessor.stream.getTracks().forEach(t => t.stop());
+            pcmProcessor = null;
+        }
+        micGainNode = null;
+        agentSpeaking = false;
+        isListening = false;
+        setListening(false);
+    }
+    function setListening(on) {
+        document.getElementById("micBtn").classList.toggle("listening", on);
+        document.getElementById("micIcon").textContent = on ? "⏹" : "🎙";
+        document.getElementById("micLabel").textContent = on ? "STOP" : "ANALYZE";
+        document.getElementById("micPrimary").textContent = on ? "Listening…" : "Press to speak";
+        const cmb = document.getElementById("convMicBtn");
+        if (cmb) {
+            cmb.classList.toggle("listening", on);
+            cmb.textContent = on ? "⏹" : "🎙";
+        }
+        document.getElementById("convMicLabel").innerHTML = on
+            ? "<b>Listening</b> — speak now"
+            : "<b>Continue speaking</b> — or type below";
+        const dots = document.getElementById("listenDots");
+        if (dots) dots.classList.toggle("show", on);
+    }
+    // ── Mode shift ───────────────────────────────────────────────────────────
+    function enterConvMode() {
+        if (inConvMode) return;
+        inConvMode = true;
+        document.getElementById("launchState").style.display = "none";
+        document.getElementById("convState").classList.add("visible");
+        syncPatientPanel();
+    }
+    function syncPatientPanel() {
+        const p2 = document.getElementById("patientPanel2");
+        p2.innerHTML = `
+            <div class="patient-inner" style="margin-top:12px">
+                <div class="patient-grid">
+                    <div class="fgroup">
+                        <label>Genetic Variants</label>
+                        <textarea id="mutBox2" rows="5" placeholder="CYP2D6: *4/*4&#10;CYP2C19: *1/*2"></textarea>
+                        <div class="upload-zone" onclick="document.getElementById('fileInput2').click()">
+                            📄 Upload file
+                            <input type="file" id="fileInput2" accept=".txt,.csv,.vcf" onchange="handleFile2(event)">
+                        </div>
+                    </div>
+                    <div class="fgroup">
+                        <label>Medications</label>
+                        <textarea id="medBox2" rows="5" placeholder="clopidogrel&#10;omeprazole"></textarea>
+                    </div>
+                </div>
+                <div class="panel-actions">
+                    <button class="btn primary" onclick="analyzeForm2()">⚡ Analyze</button>
+                    <button class="btn" onclick="loadDemo()">🧪 Demo</button>
+                    <button class="btn ghost" onclick="clearAll()">Clear</button>
+                </div>
+            </div>`;
+        const m = document.getElementById("mutBox");
+        const d = document.getElementById("medBox");
+        if (m && m.value) document.getElementById("mutBox2").value = m.value;
+        if (d && d.value) document.getElementById("medBox2").value = d.value;
+    }
+    // ── Patient panel toggle ─────────────────────────────────────────────────
+    function togglePanel() {
+        panelOpen = !panelOpen;
+        document.getElementById("discBtn").classList.toggle("open", panelOpen);
+        document.getElementById("patientPanel").classList.toggle("open", panelOpen);
+        const d2 = document.getElementById("discBtn2");
+        const p2 = document.getElementById("patientPanel2");
+        if (d2) d2.classList.toggle("open", panelOpen);
+        if (p2) p2.classList.toggle("open", panelOpen);
+    }
+    // ── Analyze from form ────────────────────────────────────────────────────
+    function analyzeForm() {
+        const muts = document.getElementById("mutBox").value.trim();
+        const meds = document.getElementById("medBox").value.trim();
+        if (!meds) { alert("Please enter medications."); return; }
+        sendQuery(meds, muts);
+    }
+    function analyzeForm2() {
+        const muts = document.getElementById("mutBox2").value.trim();
+        const meds = document.getElementById("medBox2").value.trim();
+        if (!meds) { alert("Please enter medications."); return; }
+        sendQuery(meds, muts);
+    }
+    function sendQuery(meds, muts) {
+        if (!ws || ws.readyState !== WebSocket.OPEN) connect();
+        audioCtx = null; nextPlayTime = 0;
+        enterConvMode();
+        setTimeout(() => {
+            const q = `Analyze medications: ${meds.replace(/\n/g,", ")}. Patient genotype: ${muts.replace(/\n/g,", ")}`;
+            ws.send(JSON.stringify({ type: "text", text: q }));
+            addMsg(q, true);
+            updateContextFromInputs(meds, muts);
+        }, 400);
+    }
+    // ── Context sidebar ───────────────────────────────────────────────────────
+    function updateContextFromInputs(meds, genes) {
+        if (meds) {
+            const items = meds.split(/[\n,]/).map(m => m.trim()).filter(Boolean);
+            document.getElementById("ctxMeds").innerHTML = items.map(m =>
+                `<div class="ctx-item">${m}</div>`).join("");
+        }
+        if (genes) {
+            const items = genes.split(/\n/).map(g => g.trim()).filter(Boolean);
+            document.getElementById("ctxGenes").innerHTML = items.map(g =>
+                `<div class="ctx-item">${g}</div>`).join("");
+        }
+    }
+    // ── UI helpers ────────────────────────────────────────────────────────────
+    function createLiveBubble(isUser) {
+        const t = document.getElementById("transcript");
+        const dots = t.querySelector(".listening-dots");
+        if (dots) dots.remove();
+        const div = document.createElement("div");
+        div.className = isUser ? "t-you transcribing" : "t-agent";
+        t.appendChild(div);
+        t.scrollTop = t.scrollHeight;
+        return div;
+    }
+    function scrollTranscript() {
+        const t = document.getElementById("transcript");
+        t.scrollTop = t.scrollHeight;
+    }
+    function addMsg(text, isUser) {
+        if (!text || !text.trim()) return;
+        const t = document.getElementById("transcript");
+        const dots = t.querySelector(".listening-dots");
+        if (dots) dots.remove();
+        const isCritical = !isUser && (text.includes("CRITICAL") || text.includes("critical"));
+        const cls = isUser ? "t-you" : (isCritical ? "t-agent t-critical" : "t-agent");
+        const div = document.createElement("div");
+        div.className = cls;
+        div.textContent = text;
+        t.appendChild(div);
+        t.scrollTop = t.scrollHeight;
+    }
+    function showReport(text) {
+        document.getElementById("reportTime").textContent = new Date().toLocaleTimeString();
+        const body = document.getElementById("reportBody");
+        body.innerHTML = "";
+        document.getElementById("reportCard").style.display = "block";
+        const sentences = stripMarkdown(text).split(/(?<=[.!])\s+/);
+        for (const s of sentences) {
+            if (!s.trim()) continue;
+            let cls = "rline";
+            if (s.includes("CRITICAL"))                            cls = "r-critical";
+            else if (s.includes("HIGH"))                           cls = "r-high";
+            else if (/AVOID|CONSIDER|REDUCE|Dosing/i.test(s))     cls = "rline r-dosing";
+            else if (/No critical|no critical/i.test(s))          cls = "rline r-safe";
+            const div = document.createElement("div");
+            div.className = cls; div.textContent = s.trim();
+            body.appendChild(div);
+        }
+        document.getElementById("reportCard").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+    function loadDemo() {
+        const g = "CYP2D6: *4/*4\nCYP2C19: *1/*2\nCYP2C9: *1/*1\nDPYD: *1/*1\nSLCO1B1: *1/*1";
+        const m = "Plavix\nomeprazole\ncodeine\nProzac";
+        const mb = document.getElementById("mutBox"); if (mb) mb.value = g;
+        const db = document.getElementById("medBox"); if (db) db.value = m;
+        if (!panelOpen) togglePanel();
+    }
+    function handleFile(e) {
+        const f = e.target.files[0]; if (!f) return;
+        const r = new FileReader();
+        r.onload = (ev) => { document.getElementById("mutBox").value = ev.target.result.trim(); };
+        r.readAsText(f);
+    }
+    function handleFile2(e) {
+        const f = e.target.files[0]; if (!f) return;
+        const r = new FileReader();
+        r.onload = (ev) => { document.getElementById("mutBox2").value = ev.target.result.trim(); };
+        r.readAsText(f);
+    }
+    function clearAll() {
+        const t = document.getElementById("transcript");
+        t.innerHTML = `<div class="listening-dots" id="listenDots"><span></span><span></span><span></span>&nbsp;Listening…</div>`;
+        document.getElementById("reportCard").style.display = "none";
+        document.getElementById("reportBody").innerHTML = "";
+        document.getElementById("ctxMeds").innerHTML = '<div class="ctx-empty">None captured yet</div>';
+        document.getElementById("ctxGenes").innerHTML = '<div class="ctx-empty">None captured yet</div>';
+        audioCtx = null; nextPlayTime = 0;
+        partialAgentText = ""; partialUserText = "";
+        agentBubble = null; userBubble = null;
+        agentSpeaking = false;
+        lastContextUpdateTurn = -1;
+    }
+    function downloadReport() {
+        const body = document.getElementById("reportBody");
+        if (!body || !body.children.length) { alert("No report yet."); return; }
+        let muts = (document.getElementById("mutBox") || {}).value || (document.getElementById("mutBox2") || {}).value || "";
+        let meds = (document.getElementById("medBox") || {}).value || (document.getElementById("medBox2") || {}).value || "";
+        if (!muts.trim()) {
+            const geneItems = document.getElementById("ctxGenes").querySelectorAll(".ctx-item");
+            muts = geneItems.length ? Array.from(geneItems).map(el => el.textContent).join("\n") : "Not provided";
+        }
+        if (!meds.trim()) {
+            const medItems = document.getElementById("ctxMeds").querySelectorAll(".ctx-item");
+            meds = medItems.length ? Array.from(medItems).map(el => el.textContent).join("\n") : "Not provided";
+        }
+        const ts = new Date().toLocaleString();
+        const lines = Array.from(body.children).map(el => {
+            const c = el.className;
+            const color = c.includes("critical") ? "#c0392b" : c.includes("high") ? "#b7670a" : c.includes("dosing") ? "#0a6e72" : c.includes("safe") ? "#1a7a4a" : "#48484a";
+            const bg = c.includes("r-critical") ? "background:#fdf2f1;border:1px solid #f5c2be;border-radius:8px;padding:10px 14px;margin:8px 0;" :
+                       c.includes("r-high")     ? "background:#fdf6ed;border:1px solid #f0d4b0;border-radius:8px;padding:10px 14px;margin:8px 0;" :
+                       c.includes("dosing")     ? "border-left:3px solid #0a6e72;padding:7px 12px;background:#e6f4f5;margin:6px 0;" : "padding:6px 0;border-bottom:1px solid #f0ede8;";
+            return `<div style="${bg}color:${color};font-size:14px;">${el.textContent}</div>`;
+        }).join("");
+        const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+        <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+        <style>body{font-family:'DM Sans',sans-serif;background:#f8f7f4;color:#1c1c1e;padding:56px;max-width:760px;margin:0 auto;font-size:14px;}
+        .hd{border-bottom:2px solid #0a6e72;padding-bottom:20px;margin-bottom:28px;}
+        h1{font-family:'Instrument Serif',serif;font-size:24px;margin:0 0 4px;}
+        .meta{color:#98989d;font-size:12px;}
+        .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px;}
+        .box{background:#fff;border:1px solid #e5e2db;border-radius:10px;padding:14px;}
+        .box label{font-size:10px;font-weight:600;color:#0a6e72;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:5px;}
+        .box pre{font-family:monospace;font-size:12px;white-space:pre-wrap;margin:0;}
+        .stitle{font-size:10px;font-weight:600;color:#98989d;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 12px;}
+        .foot{margin-top:36px;padding-top:12px;border-top:1px solid #e5e2db;color:#98989d;font-size:11px;}</style>
+        </head><body>
+        <div class="hd"><h1>PGx·Guardian Safety Report</h1><div class="meta">Generated ${ts} · PGx-Guardian v2.2</div></div>
+        <div class="grid">
+            <div class="box"><label>Genetic Variants</label><pre>${muts}</pre></div>
+            <div class="box"><label>Medications</label><pre>${meds}</pre></div>
+        </div>
+        <div class="stitle">Pharmacogenomics Safety Analysis</div>
+        ${lines}
+        <div class="foot">⚠ For clinical decision support only. All recommendations require physician review.</div>
+        </body></html>`;
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([html],{type:"text/html"}));
+        a.download = "PGxReport_" + new Date().toISOString().slice(0,10) + ".html";
+        a.click();
+    }
+    function float32ToInt16(buffer) {
+        const l=buffer.length, r=new Int16Array(l);
+        for(let i=0;i<l;i++) r[i]=Math.max(-32768,Math.min(32767,buffer[i]*32768));
+        return r;
+    }
+    connect();
+</script>
+</body>
+</html>

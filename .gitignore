@@ -1,0 +1,13 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.env
+Documents/
+*.log
+*.bak
+data/pharmcat/
+data/pharmgkb/
+data/drugbank/
+data/cpic/
+data/test_patients/
