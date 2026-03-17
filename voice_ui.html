@@ -505,7 +505,7 @@
 <script>
     const USER_ID = "clinician_1";
     const SESSION_ID = "session_" + Date.now();
-    const WS_URL = `wss://pgx-guardian-bkn3cbfcxq-ew.a.run.app/ws/${USER_ID}/${SESSION_ID}`;
+    const WS_URL = `ws://localhost:8000/ws/${USER_ID}/${SESSION_ID}`;
     let ws, pcmProcessor, isListening = false;
     let audioCtx = null, nextPlayTime = 0;
     const SAMPLE_RATE = 24000;
@@ -945,6 +945,8 @@
         const m = "Plavix\nomeprazole\ncodeine\nProzac";
         const mb = document.getElementById("mutBox"); if (mb) mb.value = g;
         const db = document.getElementById("medBox"); if (db) db.value = m;
+        const mb2 = document.getElementById("mutBox2"); if (mb2) mb2.value = g;
+        const db2 = document.getElementById("medBox2"); if (db2) db2.value = m;
         if (!panelOpen) togglePanel();
     }
     function handleFile(e) {
