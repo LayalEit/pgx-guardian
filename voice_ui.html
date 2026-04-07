@@ -386,16 +386,202 @@
             background: var(--teal-light); border-radius: 0 6px 6px 0;
         }
         .r-safe { color: var(--safe); font-weight: 500; }
+
+        /* ══ AUTH / PERMISSIONS PANEL ══ */
+        .auth-bar { display: flex; align-items: center; gap: 10px; }
+        .user-pill {
+            display: flex; align-items: center; gap: 7px;
+            font-size: 12px; font-weight: 500; color: var(--ink-soft);
+            background: var(--bg); border: 1px solid var(--border);
+            border-radius: 20px; padding: 4px 12px 4px 6px;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .user-pill:hover { border-color: var(--teal); color: var(--teal); }
+        .user-avatar {
+            width: 22px; height: 22px; border-radius: 50%;
+            background: var(--teal); color: white;
+            font-size: 10px; font-weight: 600;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .logout-btn {
+            font-size: 12px; color: var(--ink-muted);
+            background: none; border: none; cursor: pointer;
+            padding: 4px 8px; border-radius: 6px; transition: color 0.2s;
+        }
+        .logout-btn:hover { color: var(--critical); }
+        .permissions-drawer {
+            position: fixed; top: 0; right: -360px;
+            width: 340px; height: 100vh;
+            background: var(--white); border-left: 1px solid var(--border);
+            box-shadow: -4px 0 24px rgba(0,0,0,0.08);
+            z-index: 200; transition: right 0.3s cubic-bezier(0.4,0,0.2,1);
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+        .permissions-drawer.open { right: 0; }
+        .drawer-header {
+            padding: 20px 20px 16px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .drawer-title { font-family: 'Instrument Serif', serif; font-size: 17px; color: var(--ink); }
+        .drawer-close { background: none; border: none; cursor: pointer; font-size: 18px; color: var(--ink-muted); padding: 4px; }
+        .drawer-body { padding: 20px; overflow-y: auto; flex: 1; }
+        .drawer-section { margin-bottom: 24px; }
+        .drawer-section-title {
+            font-size: 10px; font-weight: 600; letter-spacing: 1.2px;
+            text-transform: uppercase; color: var(--ink-muted); margin-bottom: 12px;
+        }
+        .conn-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 12px; border-radius: 10px;
+            border: 1px solid var(--border); margin-bottom: 8px; background: var(--bg);
+        }
+        .conn-icon { font-size: 18px; width: 28px; text-align: center; }
+        .conn-info { flex: 1; }
+        .conn-name { font-size: 13px; font-weight: 500; color: var(--ink); }
+        .conn-status { font-size: 11px; color: var(--ink-muted); margin-top: 1px; }
+        .conn-status.connected { color: var(--safe); }
+        .conn-btn {
+            font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 6px;
+            border: 1px solid var(--teal); color: var(--teal);
+            background: none; cursor: pointer; transition: all 0.18s; white-space: nowrap;
+        }
+        .conn-btn:hover { background: var(--teal); color: white; }
+        .conn-btn.connected { border-color: var(--border); color: var(--ink-muted); }
+        .conn-btn.connected:hover { border-color: var(--critical); color: var(--critical); }
+        .actions-panel {
+            display: none; margin-top: 16px;
+            background: var(--white); border: 1px solid var(--border);
+            border-radius: 14px; padding: 18px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        }
+        .actions-panel.visible { display: block; }
+        .actions-title {
+            font-size: 10px; font-weight: 600; letter-spacing: 1.2px;
+            text-transform: uppercase; color: var(--ink-muted); margin-bottom: 12px;
+        }
+        .actions-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+        .action-btn {
+            display: flex; align-items: center; gap: 6px;
+            padding: 8px 14px; border-radius: 8px;
+            border: 1px solid var(--border); background: var(--white); color: var(--ink-soft);
+            font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500;
+            cursor: pointer; transition: all 0.18s;
+        }
+        .action-btn:hover { border-color: var(--teal); color: var(--teal); background: var(--teal-light); }
+        .modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.35); z-index: 300;
+            align-items: center; justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-box {
+            background: var(--white); border-radius: 16px; padding: 28px;
+            width: 380px; max-width: 90vw;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+        .modal-title { font-family: 'Instrument Serif', serif; font-size: 18px; margin-bottom: 8px; color: var(--ink); }
+        .modal-desc { font-size: 13px; color: var(--ink-soft); margin-bottom: 16px; line-height: 1.6; }
+        .modal-input {
+            width: 100%; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 8px;
+            font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--ink);
+            background: var(--bg); outline: none; margin-bottom: 16px; transition: border-color 0.2s;
+        }
+        .modal-input:focus { border-color: var(--teal); }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .modal-confirm {
+            padding: 9px 20px; border-radius: 8px; background: var(--teal); color: white;
+            border: none; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer;
+        }
+        .modal-confirm:hover { background: #0c8589; }
+        .modal-cancel {
+            padding: 9px 20px; border-radius: 8px; background: none; color: var(--ink-muted);
+            border: 1px solid var(--border); font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer;
+        }
+        .toast {
+            position: fixed; bottom: 24px; left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: var(--ink); color: white; padding: 10px 20px; border-radius: 10px;
+            font-size: 13px; font-weight: 500; box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); z-index: 400; white-space: nowrap;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .toast.success { background: var(--safe); }
+        .toast.error { background: var(--critical); }
     </style>
 </head>
 <body>
 <header>
     <div class="wordmark">PGx<em>·</em>Guardian</div>
-    <div class="conn-pill" id="connPill">
-        <div class="conn-dot"></div>
-        <span id="connText">Connecting</span>
+    <div style="display:flex;align-items:center;gap:12px">
+        <div class="conn-pill" id="connPill">
+            <div class="conn-dot"></div>
+            <span id="connText">Connecting</span>
+        </div>
+        <div class="auth-bar" id="authBar" style="display:none">
+            <div class="user-pill" onclick="toggleDrawer()">
+                <div class="user-avatar" id="userAvatar">?</div>
+                <span id="userEmail">Loading…</span>
+            </div>
+            <button class="logout-btn" onclick="window.location='/auth/logout'">Sign out</button>
+        </div>
     </div>
 </header>
+
+<!-- Permissions drawer -->
+<div class="permissions-drawer" id="permDrawer">
+    <div class="drawer-header">
+        <div class="drawer-title">Connected Services</div>
+        <button class="drawer-close" onclick="toggleDrawer()">✕</button>
+    </div>
+    <div class="drawer-body">
+        <div class="drawer-section">
+            <div class="drawer-section-title">Your Account</div>
+            <div class="conn-item">
+                <div class="conn-icon">👤</div>
+                <div class="conn-info">
+                    <div class="conn-name" id="drawerName">—</div>
+                    <div class="conn-status" id="drawerEmail">—</div>
+                </div>
+            </div>
+        </div>
+        <div class="drawer-section">
+            <div class="drawer-section-title">Token Vault Connections</div>
+            <div class="conn-item" id="conn-google">
+                <div class="conn-icon">🔵</div>
+                <div class="conn-info">
+                    <div class="conn-name">Google</div>
+                    <div class="conn-status" id="google-status">Not connected</div>
+                </div>
+                <button class="conn-btn" id="google-btn" onclick="connectGoogle()">Connect</button>
+            </div>
+        </div>
+        <div class="drawer-section">
+            <div class="drawer-section-title">What Google unlocks</div>
+            <div style="font-size:12px;color:var(--ink-muted);line-height:1.8;">
+                📧 Send safety reports via Gmail<br>
+                📅 Schedule follow-up appointments<br>
+                💾 Archive reports to Google Drive<br>
+                📊 Log analyses to Google Sheets
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation modal -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal-box">
+        <div class="modal-title" id="modalTitle">Confirm Action</div>
+        <div class="modal-desc" id="modalDesc"></div>
+        <input type="text" class="modal-input" id="modalInput" placeholder="" style="display:none">
+        <div class="modal-actions">
+            <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+            <button class="modal-confirm" id="modalConfirmBtn" onclick="confirmModal()">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
 <div class="page">
     <!-- ══ LAUNCH STATE ══ -->
     <div class="launch-state" id="launchState">
@@ -484,6 +670,16 @@
                             </div>
                         </div>
                         <div id="reportBody"></div>
+                    </div>
+                    <!-- Actions panel — appears after report -->
+                    <div class="actions-panel" id="actionsPanel">
+                        <div class="actions-title">Act on this report</div>
+                        <div class="actions-grid">
+                            <button class="action-btn" onclick="showEmailModal()">📧 Email report</button>
+                            <button class="action-btn" onclick="doSchedule()">📅 Schedule follow-up</button>
+                            <button class="action-btn" onclick="doSaveDrive()">💾 Save to Drive</button>
+                            <button class="action-btn" onclick="doLogAudit()">📊 Log audit</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -939,6 +1135,9 @@
             body.appendChild(div);
         }
         document.getElementById("reportCard").scrollIntoView({ behavior: "smooth", block: "nearest" });
+        // Capture HTML for Token Vault actions
+        currentReportHtml = document.getElementById("reportBody").innerHTML;
+        showActionsPanel();
     }
     function loadDemo() {
         const g = "CYP2D6: *4/*4\nCYP2C19: *1/*2\nCYP2C9: *1/*1\nDPYD: *1/*1\nSLCO1B1: *1/*1";
@@ -1028,6 +1227,235 @@
         for(let i=0;i<l;i++) r[i]=Math.max(-32768,Math.min(32767,buffer[i]*32768));
         return r;
     }
+    // ══════════════════════════════════════════════════════
+    // AUTH + TOKEN VAULT ACTIONS
+    // ══════════════════════════════════════════════════════
+
+    let currentReportHtml = "";
+    let _pendingAction = null;
+    let _googleConnected = false;
+    let _slackConnected = false;
+
+    // ── Check auth state on load ──────────────────────────
+    async function checkAuth() {
+        try {
+            const resp = await fetch('/api/user');
+            if (resp.status === 401) return; // not logged in — server redirects anyway
+            const data = await resp.json();
+            if (data.authenticated) {
+                const user = data.user;
+                document.getElementById('authBar').style.display = 'flex';
+                const name = user.name || user.email || 'Clinician';
+                const initials = name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+                document.getElementById('userAvatar').textContent = initials;
+                document.getElementById('userEmail').textContent = user.email || name;
+                document.getElementById('drawerName').textContent = name;
+                document.getElementById('drawerEmail').textContent = user.email || '';
+                loadConnections();
+            }
+        } catch(e) { console.log('Auth check failed:', e); }
+    }
+
+    async function loadConnections() {
+        try {
+            const resp = await fetch('/api/connections');
+            const data = await resp.json();
+            const conns = data.connections || [];
+            const googleConn = conns.find(c => c.connection && c.connection.includes('google'));
+            const slackConn = conns.find(c => c.connection && c.connection.includes('slack'));
+            setConnStatus('google', !!googleConn);
+            setConnStatus('slack', !!slackConn);
+        } catch(e) { console.log('Connections fetch failed:', e); }
+    }
+
+    function setConnStatus(service, connected) {
+        if (service === 'google') _googleConnected = connected;
+        if (service === 'slack') _slackConnected = connected;
+        const statusEl = document.getElementById(service + '-status');
+        const btnEl = document.getElementById(service + '-btn');
+        if (connected) {
+            statusEl.textContent = 'Connected';
+            statusEl.className = 'conn-status connected';
+            btnEl.textContent = 'Disconnect';
+            btnEl.className = 'conn-btn connected';
+        } else {
+            statusEl.textContent = 'Not connected';
+            statusEl.className = 'conn-status';
+            btnEl.textContent = 'Connect';
+            btnEl.className = 'conn-btn';
+        }
+    }
+
+    function toggleDrawer() {
+        document.getElementById('permDrawer').classList.toggle('open');
+    }
+
+    function connectGoogle() {
+        const popup = window.open('/auth/connect?connection=google-oauth2', 'connect_google', 'width=500,height=650,scrollbars=yes');
+        const timer = setInterval(() => {
+            if (popup.closed) {
+                clearInterval(timer);
+                loadConnections();
+            }
+        }, 500);
+    }
+    function connectSlack() {
+        const popup = window.open('/auth/connect?connection=sign-in-with-slack', 'connect_slack', 'width=500,height=650,scrollbars=yes');
+        const timer = setInterval(() => {
+            if (popup.closed) {
+                clearInterval(timer);
+                loadConnections();
+            }
+        }, 500);
+    }
+
+    // ── Show actions panel after report ──────────────────
+    function showActionsPanel() {
+        document.getElementById('actionsPanel').classList.add('visible');
+    }
+
+    // ── Modal helpers ─────────────────────────────────────
+    function showModal(title, desc, placeholder, action) {
+        document.getElementById('modalTitle').textContent = title;
+        document.getElementById('modalDesc').textContent = desc;
+        const inp = document.getElementById('modalInput');
+        if (placeholder) {
+            inp.style.display = 'block';
+            inp.placeholder = placeholder;
+            inp.value = '';
+        } else {
+            inp.style.display = 'none';
+        }
+        _pendingAction = action;
+        document.getElementById('modalOverlay').classList.add('open');
+        if (placeholder) setTimeout(() => inp.focus(), 100);
+    }
+
+    function closeModal() {
+        document.getElementById('modalOverlay').classList.remove('open');
+        _pendingAction = null;
+    }
+
+    async function confirmModal() {
+        const inputVal = document.getElementById('modalInput').value.trim();
+        closeModal();
+        showToast('Processing…');
+        if (_pendingAction) await _pendingAction(inputVal);
+    }
+
+    // ── Toast ─────────────────────────────────────────────
+    function showToast(msg, type = '') {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = 'toast' + (type ? ' ' + type : '');
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 4000);
+    }
+
+    // ── Action: Email ─────────────────────────────────────
+    function showEmailModal() {
+        showModal(
+            '📧 Email Safety Report',
+            'PGx-Guardian will send this report from your Gmail account.',
+            'recipient@hospital.org',
+            async (email) => {
+                if (!email) return showToast('Please enter an email address.', 'error');
+                showToast('Sending email…');
+                const resp = await fetch('/api/actions/send-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        to_email: email,
+                        subject: 'PGx-Guardian Critical Safety Report',
+                        report_html: currentReportHtml,
+                    }),
+                });
+                const r = await resp.json();
+                showToast(r.success ? r.message : '❌ ' + r.error, r.success ? 'success' : 'error');
+            }
+        );
+    }
+
+    // ── Action: Schedule ──────────────────────────────────
+    async function doSchedule() {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(9, 0, 0, 0);
+        showToast('Scheduling follow-up…');
+        const resp = await fetch('/api/actions/schedule-followup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                summary: 'PGx-Guardian: Patient Follow-up Review',
+                date_iso: tomorrow.toISOString(),
+                duration_minutes: 30,
+            }),
+        });
+        const r = await resp.json();
+        showToast(r.success ? r.message : '❌ ' + r.error, r.success ? 'success' : 'error');
+    }
+
+    // ── Action: Save to Drive ─────────────────────────────
+    async function doSaveDrive() {
+        showToast('Saving to Drive…');
+        const filename = 'PGx-Report-' + new Date().toISOString().slice(0,10) + '.html';
+        const resp = await fetch('/api/actions/save-to-drive', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ report_html: currentReportHtml, filename }),
+        });
+        const r = await resp.json();
+        showToast(r.success ? r.message : '❌ ' + r.error, r.success ? 'success' : 'error');
+    }
+
+    // ── Action: Log audit ─────────────────────────────────
+    async function doLogAudit() {
+        const SHEET_ID = '1TUCei2YqtPNWr2oo51cV_TDiT6PCyNvQtNtHk0hK_vc';
+        if (!SHEET_ID) {
+            return showToast('No Sheet ID configured.', 'error');
+        }
+        showToast('Logging to audit sheet…');
+        const meds = Array.from(document.querySelectorAll('#ctxMeds .ctx-item')).map(e => e.textContent).join(', ') || 'unknown';
+        const genes = Array.from(document.querySelectorAll('#ctxGenes .ctx-item')).map(e => e.textContent).join(', ') || 'unknown';
+        const resp = await fetch('/api/actions/log-audit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                spreadsheet_id: SHEET_ID,
+                row_data: [new Date().toISOString(), 'Clinician', meds, genes, 'See report'],
+            }),
+        });
+        const r = await resp.json();
+        showToast(r.success ? r.message : '❌ ' + r.error, r.success ? 'success' : 'error');
+    }
+
+    // ── Action: Slack alert ───────────────────────────────
+    function showSlackModal() {
+        showModal(
+            '🔔 Alert Care Team on Slack',
+            'PGx-Guardian will post a critical interaction alert to your Slack channel.',
+            '#pharmacy-alerts',
+            async (channel) => {
+                if (!channel) return showToast('Please enter a channel name.', 'error');
+                channel = channel.replace('#', '');
+                showToast('Posting to Slack…');
+                const resp = await fetch('/api/actions/slack-alert', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        channel,
+                        message: '*⚠️ PGx-Guardian Critical Drug-Gene Interaction Detected*\n\nA safety report has been generated. Please review immediately.',
+                    }),
+                });
+                const r = await resp.json();
+                showToast(r.success ? r.message : '❌ ' + r.error, r.success ? 'success' : 'error');
+            }
+        );
+    }
+
+    // Call auth check on load
+    checkAuth();
+
     connect();
 </script>
 </body>
